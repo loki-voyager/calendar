@@ -1,12 +1,10 @@
 import React from 'react';
-import './App.css';
+import {Calendar} from "./components/calendar/Calendar";
 
 function App() {
   return (
     <div className="App">
-      <button onClick={()=>{
-        console.log(`click: ${true}`)
-      }}>click</button>
+      <Calendar/>
     </div>
   );
 }
