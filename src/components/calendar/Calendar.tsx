@@ -1,6 +1,7 @@
 import "./Calendar.css";
-import { useRef, useState} from "react";
-import {AddForm} from "../AddForm/AddForm";
+import {useEffect, useRef, useState} from "react";
+import {AddForm} from "../addForm/AddForm";
+import {EditForm} from "../editForm/EditForm";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -16,16 +17,79 @@ const Calendar = () => {
         return savedDate ? new Date(savedDate) : new Date();
     });
 
-    const [openForm, setOpenForm] = useState(false);
-    const [giveDate, setGiveDate] = useState(false);
+    useEffect(() => {
+        localStorage.setItem('currentDate', currentDate.toISOString());
+    }, [currentDate]);
 
-    const [ideas, setIdeas] = useState<{ [key: string]: ideaType[] }>({});
+    const [openForm, setOpenForm] = useState(false);
+    const [openEditForm, setOpenEditForm] = useState(false);
+    const [giveDate, setGiveDate] = useState(false);
+    const [giveIdea,setGiveIdea] = useState<ideaType>()
+    const [giveIdeaId,setGiveIdeaId] = useState<string>("")
+    const [giveIdeaIndex,setGiveIdeaIndex] = useState<number>(0)
+
+    const [ideas, setIdeas] = useState<{ [key: string]: ideaType[] }>(() => {
+        const savedIdeas = localStorage.getItem('ideas');
+        if (savedIdeas) {
+            const parsedIdeas = JSON.parse(savedIdeas) as { [key: string]: ideaType[] };
+            return Object.fromEntries(
+                Object.entries(parsedIdeas).map(([key, ideasArray]) => [
+                    key,
+                    ideasArray.map((idea: ideaType) => ({
+                        ...idea,
+                        date: new Date(idea.date),
+                    })),
+                ])
+            );
+        }
+        return {};
+    });
+
+    useEffect(() => {
+        localStorage.setItem('ideas', JSON.stringify(ideas));
+    }, [ideas]);
 
     const addIdea = (id: string, newIdea: ideaType) => {
         setIdeas((prevIdeas) => ({
             ...prevIdeas,
             [id]: [...(prevIdeas[id] || []), newIdea],
         }));
+    };
+
+    const updateIdea = (oldId: string, index: number, updatedIdea: ideaType) => {
+        const newId = updatedIdea.date.toLocaleDateString();
+
+        setIdeas((prevIdeas) => {
+            const updatedIdeas = { ...prevIdeas };
+
+            updatedIdeas[oldId] = updatedIdeas[oldId].filter((_, i) => i !== index);
+
+            if (updatedIdeas[oldId].length === 0) {
+                delete updatedIdeas[oldId];
+            }
+
+            if (updatedIdeas[newId]) {
+                updatedIdeas[newId] = [updatedIdea, ...updatedIdeas[newId]];
+            } else {
+                updatedIdeas[newId] = [updatedIdea];
+            }
+
+            return updatedIdeas;
+        });
+    };
+
+    const deleteIdea = (id: string, index: number) => {
+        setIdeas((prevIdeas) => {
+            const updatedIdeas = { ...prevIdeas };
+
+            updatedIdeas[id] = updatedIdeas[id].filter((_, i) => i !== index);
+
+            if (updatedIdeas[id].length === 0) {
+                delete updatedIdeas[id];
+            }
+
+            return updatedIdeas;
+        });
     };
 
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -73,8 +137,17 @@ const Calendar = () => {
                     </p>
                     {dateIdeas &&
                         <>
-                            {dateIdeas.map((idea,index) => (
-                                <a key={`idea-${idea.date.toLocaleDateString()}-${index}`}>
+                            {dateIdeas.map((idea, index) => (
+                                <a
+                                    key={`idea-${idea.date.toLocaleDateString()}-${index}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenEditForm(true)
+                                        setGiveIdea(idea)
+                                        setGiveIdeaId(idea.date.toLocaleDateString())
+                                        setGiveIdeaIndex(index)
+                                    }}
+                                >
                                     {idea.title}
                                 </a>
                             ))}
@@ -106,6 +179,18 @@ const Calendar = () => {
                     dateInputRef={dateInputRef}
                     addIdea={addIdea}
                     {...(giveDate && {currentDate: currentDate})}
+                />
+            )}
+            {(openEditForm && giveIdea) && (
+                <EditForm
+                    setOpenForm={setOpenEditForm}
+                    setCurrentDate={setCurrentDate}
+                    dateInputRef={dateInputRef}
+                    idea={giveIdea}
+                    ideaId={giveIdeaId}
+                    ideaIndex={giveIdeaIndex}
+                    updateIdea={updateIdea}
+                    deleteIdea={deleteIdea}
                 />
             )}
             <section className="calendar-container wrapper">

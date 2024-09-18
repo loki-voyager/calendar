@@ -87,11 +87,12 @@ const AddForm = ({setOpenForm, setCurrentDate, dateInputRef, currentDate, setGiv
                 )}
 
 
-                <button type="submit" disabled={!isFormValid}>
-                    SAVE
-                </button>
+                <div className="addForm-button-container">
+                    <button className="save-button" type="submit" disabled={!isFormValid}>
+                        SAVE
+                    </button>
+                </div>
             </form>
-            s
         </div>
     )
 }

@@ -1,0 +1,34 @@
+.addForm-container{
+    @apply absolute w-full h-full m-auto z-20;
+    @apply bg-black bg-opacity-60;
+    @apply cursor-pointer;
+    @apply flex items-center justify-center;
+}
+.addForm-body{
+    @apply px-1 py-2 bg-neutral-200 border border-neutral-500 rounded;
+    @apply z-50;
+    @apply flex flex-col gap-1 p-6 w-6/12 h-4/5 m-auto;
+}
+.addForm-body > h2{
+    @apply cursor-default
+}
+
+.addForm-body > textarea{
+    @apply flex-1
+}
+
+span.required{
+    @apply text-red-500
+}
+
+.addForm-body > button{
+    @apply disabled:opacity-60;
+}
+
+.addForm-button-container{
+    @apply flex gap-2 justify-end
+}
+
+.save-button{
+    @apply bg-lime-800 bg-opacity-80;
+}
