@@ -1,5 +1,5 @@
 import "./Calendar.css";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {AddForm} from "../addForm/AddForm";
 import {EditForm} from "../editForm/EditForm";
 
@@ -17,16 +17,17 @@ const Calendar = () => {
         return savedDate ? new Date(savedDate) : new Date();
     });
 
-    useEffect(() => {
-        localStorage.setItem('currentDate', currentDate.toISOString());
-    }, [currentDate]);
+    useEffect(
+        () => {
+            localStorage.setItem('currentDate', currentDate.toISOString());
+        }, [currentDate]);
 
     const [openForm, setOpenForm] = useState(false);
     const [openEditForm, setOpenEditForm] = useState(false);
     const [giveDate, setGiveDate] = useState(false);
-    const [giveIdea,setGiveIdea] = useState<ideaType>()
-    const [giveIdeaId,setGiveIdeaId] = useState<string>("")
-    const [giveIdeaIndex,setGiveIdeaIndex] = useState<number>(0)
+    const [giveIdea, setGiveIdea] = useState<ideaType>()
+    const [giveIdeaId, setGiveIdeaId] = useState<string>("")
+    const [giveIdeaIndex, setGiveIdeaIndex] = useState<number>(0)
 
     const [ideas, setIdeas] = useState<{ [key: string]: ideaType[] }>(() => {
         const savedIdeas = localStorage.getItem('ideas');
@@ -60,7 +61,7 @@ const Calendar = () => {
         const newId = updatedIdea.date.toLocaleDateString();
 
         setIdeas((prevIdeas) => {
-            const updatedIdeas = { ...prevIdeas };
+            const updatedIdeas = {...prevIdeas};
 
             updatedIdeas[oldId] = updatedIdeas[oldId].filter((_, i) => i !== index);
 
@@ -80,7 +81,7 @@ const Calendar = () => {
 
     const deleteIdea = (id: string, index: number) => {
         setIdeas((prevIdeas) => {
-            const updatedIdeas = { ...prevIdeas };
+            const updatedIdeas = {...prevIdeas};
 
             updatedIdeas[id] = updatedIdeas[id].filter((_, i) => i !== index);
 
@@ -92,8 +93,8 @@ const Calendar = () => {
         });
     };
 
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startOfMonth = useMemo(() => new Date(currentDate.getFullYear(), currentDate.getMonth(), 1), [currentDate]);
+    const endOfMonth = useMemo(() => new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0), [currentDate]);
 
     const handlePreviousMonth = () => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -107,7 +108,7 @@ const Calendar = () => {
         return ideas[id];
     };
 
-    const generateCalendarDays = () => {
+    const generateCalendarDays = useCallback(() => {
         const days = [];
         const startDay = startOfMonth.getDay();
 
@@ -158,7 +159,7 @@ const Calendar = () => {
         }
 
         return days;
-    };
+    },[currentDate, ideas])
 
 
     const dateInputRef = useRef<HTMLInputElement>(null);
